@@ -4,6 +4,6 @@ public class test {
     public static void main(String[] args) {
         test myobj = new test();
         System.out.println(myobj.x);
-        System.out.println("New version");
+        System.out.println("New version 3");
     }
 }
