@@ -32,7 +32,8 @@ public class ElevatorGUI extends JFrame {
         JPanel elevatorPanel = new JPanel(new BorderLayout());
         elevatorPanel.setBorder(BorderFactory.createTitledBorder(elevatorName));
     
-        // Create button panel and add buttons
+        /*
+        // Create button panel and add buttons (15 buttons)
         JPanel buttonPanel = new JPanel(new GridLayout(5, 3, 5, 3));
         int startNumber = 13;
         int[] countSet = {13, 14, 15};
@@ -50,28 +51,42 @@ public class ElevatorGUI extends JFrame {
                 dictionary.put(countNumber, j);
             }
         }
+        */
+
+        // Create button panel and add buttons (5 buttons)
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 3, 5, 3));
+        int[] buttonSet = new int[5];
+        int j = 0;
+        for (int i = 5; i > 0; i--) {
+            buttonSet[j] = i;
+            dictionary.put(i, j);
+            j++;
+        }
 
         // Create floor label and add to panel
         JLabel floorLabel = new JLabel("Floor: 1");
         floorLabel.setHorizontalAlignment(JLabel.CENTER);
         elevatorPanel.add(floorLabel, BorderLayout.NORTH);
 
+        // Sets value for each button and what each button does when pressed
         for (int i = 0; i < buttonSet.length; i++) {
             String floor = Integer.toString(buttonSet[i]);
             JToggleButton button = new JToggleButton(floor);
-            button.setPreferredSize(new Dimension(40, 10));
+            button.setPreferredSize(new Dimension(15, 10));
             button.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    // if button matches current floor, doesnt toggle on
                     if ( ((JToggleButton)e.getSource()).getText().equals(floorLabel.getText().substring(7)) ) {
-                        System.out.println("Current Button: " + ((JToggleButton)e.getSource()).getText());
                         ((JToggleButton)e.getSource()).setSelected(false);
                         return;
                     }
 
+                    // if button gets selected, adds to queue
                     if ( ((JToggleButton)e.getSource()).isSelected() ) {
                         String buttonText = ((JToggleButton)e.getSource()).getText();
                         addToQueue(buttonText);
 
+                    // if button is already selected, keeps toggle on (locks it)
                     } else if ( !((JToggleButton)e.getSource()).isSelected() ) {
                         ((JToggleButton)e.getSource()).setSelected(true);
 
@@ -81,12 +96,14 @@ public class ElevatorGUI extends JFrame {
             buttonPanel.add(button);
         }
         elevatorPanel.add(buttonPanel, BorderLayout.CENTER);
-    
+        
+        testQueueSort();
+
         // Create confirm button and add to panel
         JButton confirmButton = new JButton("Confirm");
         confirmButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Move elevator to toggled floor after 0.5 seconds
+                // Move elevator to toggled floor after 0.8 seconds
                 for (Component component : buttonPanel.getComponents()) {
                     if (component instanceof JToggleButton && ((JToggleButton) component).isSelected()) {
                         //buttonQueueSort(floorLabel.getText().substring(7));
@@ -98,7 +115,7 @@ public class ElevatorGUI extends JFrame {
                                 System.out.println("Womp Womp");
                             }
                             JLabel floorLabel = (JLabel)elevatorPanel.getComponent(0);
-                            System.out.println(buttonQueue);
+                            //System.out.println(buttonQueue);
                             String currentButtonValue = buttonQueue.peek();
                             floorLabel.setText("Floor: " + currentButtonValue);
                             floorLabel.paintImmediately(floorLabel.getVisibleRect());
@@ -121,6 +138,59 @@ public class ElevatorGUI extends JFrame {
 
     public void addToQueue(String value) {
         buttonQueue.add(value);
+    }
+
+    public void testQueueSort() {
+        String curFloor = "9";
+        int[] arr = { 8,3,1,10,2 };
+        Queue<Integer> buttonQueue = new LinkedList<>();
+        for (int i : arr) {
+            buttonQueue.add(i);
+        }
+        int queueSize = buttonQueue.size();
+
+        LinkedList <Integer> tempQueue = new LinkedList<Integer>();
+        LinkedList <Integer> endQueue = new LinkedList<Integer>();
+
+        for (int i=0; i<queueSize; i++) {
+            tempQueue.add(buttonQueue.poll());
+        }
+
+        if (Integer.parseInt(curFloor) < tempQueue.get(0)) { // will go up then down
+            Collections.sort(tempQueue);
+            for (int j=0; j<tempQueue.size(); j++) {
+                int i=tempQueue.get(j);
+                if (Integer.parseInt(curFloor) < i) {
+                    endQueue.add(i);
+                }
+            }
+
+            for (int j=0; j<tempQueue.size(); j++) {
+                int i=tempQueue.get(j);
+                if (Integer.parseInt(curFloor) > i) {
+                    endQueue.add(i);
+                }
+            }
+
+        } else if (Integer.parseInt(curFloor) > tempQueue.get(0)) { // will go down then up
+            Collections.sort(tempQueue);
+            for (int j=0; j<tempQueue.size(); j++) {
+                int i=tempQueue.get(j);
+                if (Integer.parseInt(curFloor) > i) {
+                    endQueue.add(i);
+                }
+            }
+
+            for (int j=0; j<tempQueue.size(); j++) {
+                int i=tempQueue.get(j);
+                if (Integer.parseInt(curFloor) < i) {
+                    endQueue.add(i);
+                }
+            }
+            
+        }
+
+        System.out.println(endQueue);
     }
 
     public void buttonQueueSort(String curFloor) {
@@ -158,6 +228,6 @@ public class ElevatorGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        ElevatorGUI ElevatorGUI2 = new ElevatorGUI();
+        ElevatorGUI ElevatorGUI = new ElevatorGUI();
     }
 }

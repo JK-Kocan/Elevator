@@ -52,27 +52,8 @@ public class test {
             
         }
 
-        Collections.sort(tempQueue, new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return Collator.getInstance().compare(o1, o2);
-            }
-        });
+        System.out.println(endQueue);
 
-        Arrays.sort(tempQueue);
-        int tempIndex = -1;
-        for (int i : tempQueue) {
-            int j=0;
-            if (Integer.parseInt(curFloor) == i) {
-                tempIndex = j;
-                endQueue[j-tempIndex] = i;
-            }
-            j++;
-        }
-
-        for (int i=0; i<tempQueue.length-tempIndex; i++) {
-
-        }
     }
 
 }
