@@ -1,80 +1,163 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.*;
 
 public class ElevatorGUI extends JFrame {
-    
-    private JPanel elevatorPanel1, elevatorPanel2, elevatorPanel3;
-    private JPanel buttonPanel1, buttonPanel2, buttonPanel3;
-    private JButton[] buttonArray1, buttonArray2, buttonArray3;
-    private JLabel elevatorLabel1, elevatorLabel2, elevatorLabel3;
-    
+    private JPanel mainPanel;
+    private JPanel elevatorPanel;
+    private Queue<String> buttonQueue = new LinkedList<>();
+    Map<Integer, Integer> dictionary = new HashMap<Integer, Integer>();
+
     public ElevatorGUI() {
-        setTitle("Elevator Control");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Elevator GUI");
         setSize(600, 400);
-        
-        // Initialize elevator panels
-        elevatorPanel1 = new JPanel();
-        
-        // Set layout of elevator panels
-        elevatorPanel1.setLayout(new BorderLayout());
-        
-        // Initialize button panels
-        
-        // Set layout of button panels
-        buttonPanel1.setLayout(new GridLayout(5, 3));
-        buttonPanel1.setSize(30,50);
-        buttonPanel2.setLayout(new GridLayout(5, 3));
-        buttonPanel2.setSize(30,50);
-        buttonPanel3.setLayout(new GridLayout(5, 3));
-        buttonPanel3.setSize(30,50);
-        
-        // Initialize button arrays
-        buttonArray1 = new JButton[15];
-        buttonArray2 = new JButton[15];
-        buttonArray3 = new JButton[15];
-        
-        // Initialize elevator labels
-        elevatorLabel1 = new JLabel("Elevator 1", SwingConstants.CENTER);
-        elevatorLabel2 = new JLabel("Elevator 2", SwingConstants.CENTER);
-        elevatorLabel3 = new JLabel("Elevator 3", SwingConstants.CENTER);
-        
-        // Add elevator labels to elevator panels
-        elevatorPanel1.add(elevatorLabel1, BorderLayout.NORTH);
-        elevatorPanel2.add(elevatorLabel2, BorderLayout.NORTH);
-        elevatorPanel3.add(elevatorLabel3, BorderLayout.NORTH);
-        
-        // Add button arrays to button panels
-        for (int i = 0; i < 15; i++) {
-            buttonArray1[i] = new JButton("" + (i+1));
-            buttonArray2[i] = new JButton("" + (i+1));
-            buttonArray3[i] = new JButton("" + (i+1));
-            buttonPanel1.add(buttonArray1[i]);
-            buttonPanel2.add(buttonArray2[i]);
-            buttonPanel3.add(buttonArray3[i]);
-        }
-        
-        // Add button panels to elevator panels
-        elevatorPanel1.add(buttonPanel1, BorderLayout.CENTER);
-        elevatorPanel2.add(buttonPanel2, BorderLayout.CENTER);
-        elevatorPanel3.add(buttonPanel3, BorderLayout.CENTER);
-        
-        // Set the size and position of the button panels
-        buttonPanel1.setPreferredSize(new Dimension(150, 150));
-        buttonPanel2.setPreferredSize(new Dimension(150, 150));
-        buttonPanel3.setPreferredSize(new Dimension(150, 150));
-        
-        // Add the elevator panels to the main panel
-        JPanel mainPanel = new JPanel(new GridLayout(1, 3));
-        mainPanel.add(elevatorPanel1);
-        mainPanel.add(elevatorPanel2);
-        mainPanel.add(elevatorPanel3);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+        // Create main panel and add elevator panels
+        mainPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        elevatorPanel = createElevatorPanel("Elevator Buttons");
+        mainPanel.add(elevatorPanel);
+    
         add(mainPanel);
-        
         setVisible(true);
+
     }
     
+    // Creates a panel for an elevator with button panel and floor label
+    private JPanel createElevatorPanel(String elevatorName) {
+        JPanel elevatorPanel = new JPanel(new BorderLayout());
+        elevatorPanel.setBorder(BorderFactory.createTitledBorder(elevatorName));
+    
+        // Create button panel and add buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 3, 5, 3));
+        int startNumber = 13;
+        int[] countSet = {13, 14, 15};
+        int[] buttonSet = new int[15];
+        int j = 0;
+        for (int i = startNumber; i >= 0; i--) {
+            int numIndex = (startNumber - i) % 3;
+            int countNumber = countSet[numIndex] - (startNumber - i) / 3 * 3;
+            buttonSet[j] = countNumber;
+            dictionary.put(countNumber, j);
+            j++;
+            if (countNumber == 2) {
+                countNumber = 3;
+                buttonSet[j] = countNumber;
+                dictionary.put(countNumber, j);
+            }
+        }
+
+        // Create floor label and add to panel
+        JLabel floorLabel = new JLabel("Floor: 1");
+        floorLabel.setHorizontalAlignment(JLabel.CENTER);
+        elevatorPanel.add(floorLabel, BorderLayout.NORTH);
+
+        for (int i = 0; i < buttonSet.length; i++) {
+            String floor = Integer.toString(buttonSet[i]);
+            JToggleButton button = new JToggleButton(floor);
+            button.setPreferredSize(new Dimension(40, 10));
+            button.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    if ( ((JToggleButton)e.getSource()).getText().equals(floorLabel.getText().substring(7)) ) {
+                        System.out.println("Current Button: " + ((JToggleButton)e.getSource()).getText());
+                        ((JToggleButton)e.getSource()).setSelected(false);
+                        return;
+                    }
+
+                    if ( ((JToggleButton)e.getSource()).isSelected() ) {
+                        String buttonText = ((JToggleButton)e.getSource()).getText();
+                        addToQueue(buttonText);
+
+                    } else if ( !((JToggleButton)e.getSource()).isSelected() ) {
+                        ((JToggleButton)e.getSource()).setSelected(true);
+
+                    }
+                }
+            });
+            buttonPanel.add(button);
+        }
+        elevatorPanel.add(buttonPanel, BorderLayout.CENTER);
+    
+        // Create confirm button and add to panel
+        JButton confirmButton = new JButton("Confirm");
+        confirmButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Move elevator to toggled floor after 0.5 seconds
+                for (Component component : buttonPanel.getComponents()) {
+                    if (component instanceof JToggleButton && ((JToggleButton) component).isSelected()) {
+                        //buttonQueueSort(floorLabel.getText().substring(7));
+                        int qSize = buttonQueue.size();
+                        for (int i=0; i<qSize; i++) {
+                            try{
+                                Thread.sleep(800);
+                              }catch(InterruptedException ex){ 
+                                System.out.println("Womp Womp");
+                            }
+                            JLabel floorLabel = (JLabel)elevatorPanel.getComponent(0);
+                            System.out.println(buttonQueue);
+                            String currentButtonValue = buttonQueue.peek();
+                            floorLabel.setText("Floor: " + currentButtonValue);
+                            floorLabel.paintImmediately(floorLabel.getVisibleRect());
+                            JToggleButton currentButton = ((JToggleButton)buttonPanel.getComponent(dictionary.get(Integer.parseInt(currentButtonValue))));
+                            currentButton.setSelected(false);
+                            currentButton.paintImmediately(currentButton.getVisibleRect());
+                            buttonQueue.remove();
+                        }
+                    }
+                }
+            }
+        });
+        elevatorPanel.add(confirmButton, BorderLayout.SOUTH);
+
+        
+        // Set elevator panel size and return
+        elevatorPanel.setPreferredSize(new Dimension(180, 300));
+        return elevatorPanel;
+    }
+
+    public void addToQueue(String value) {
+        buttonQueue.add(value);
+    }
+
+    public void buttonQueueSort(String curFloor) {
+        int[] tempQueue = new int[buttonQueue.size()];
+        int[] endQueue = new int[buttonQueue.size()];
+        if (Integer.parseInt(curFloor) > tempQueue[0]) { // will go up then down
+            Arrays.sort(tempQueue);
+            int tempIndex = -1;
+            for (int i : tempQueue) {
+                int j=0;
+                if (Integer.parseInt(curFloor) == i) {
+                    tempIndex = j;
+                    endQueue[j-tempIndex] = i;
+                }
+                j++;
+            }
+        } else if (Integer.parseInt(curFloor) < tempQueue[0]) { // will go down then up
+
+        }
+        Arrays.sort(tempQueue);
+        int tempIndex = -1;
+        for (int i : tempQueue) {
+            int j=0;
+            if (Integer.parseInt(curFloor) == i) {
+                tempIndex = j;
+                endQueue[j-tempIndex] = i;
+            }
+            j++;
+        }
+
+        for (int i=0; i<tempQueue.length-tempIndex; i++) {
+
+        }
+
+    }
+
     public static void main(String[] args) {
-        new ElevatorGUI();
+        ElevatorGUI ElevatorGUI2 = new ElevatorGUI();
     }
 }
